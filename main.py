@@ -1,81 +1,69 @@
-import requests
-from src.utils import load_json_file, save_json_file, is_duplicate
+from src.api import HeadHunterAPI
+from src.models import Vacancy
+from src.file_saver import JSONFileHandler
 
 
-class Vacancy:
-    """Класс для представления вакансии"""
-
-    def __init__(self, name, salary):
-        self.name = name
-        self.salary = salary
-
-    def __str__(self):
-        return f"{self.name}: {self.salary if self.salary else 'Не указана'}"
+def get_salary_input() -> int:
+    """Запросить у пользователя желаемую зарплату."""
+    while True:
+        try:
+            return int(input("Введите желаемую зарплату: "))
+        except ValueError:
+            print("Ошибка: Введите корректное числовое значение для зарплаты.")
 
 
-class HeadHunterAPI:
-    """Класс для взаимодействия с API HeadHunter"""
-
-    @staticmethod
-    def get_vacancies(search_query):
-        """Получает список вакансий по заданному запросу"""
-        url = f'https://api.hh.ru/vacancies?text={search_query}'
-        response = requests.get(url)
-        if response.status_code == 200:
-            vacancies_data = response.json()['items']
-            # Создаем экземпляры класса Vacancy
-            return [Vacancy(v['name'], v.get('salary')) for v in vacancies_data]
-        else:
-            print(f"Ошибка при получении вакансий: {response.status_code}")
-            return []
+def handle_deletion(json_handler: JSONFileHandler) -> None:
+    """Обработать потенциальное удаление вакансий."""
+    del_vacancy = input("Требуется что-нибудь удалить из файла? 'Да,Нет': ").strip().lower()
+    if del_vacancy == 'да':
+        titles_to_delete = input('Введите заголовки для удаления, разделенные запятыми: ')
+        titles_list = [title.strip() for title in titles_to_delete.split(',')]
+        for title in titles_list:
+            confirm = input(f"Вы уверены, что хотите удалить вакансию '{title}'? (Да/Нет): ")
+            if confirm.lower() == 'да':
+                json_handler.delete_data(title)
+                print(f"Вакансия '{title}' была удалена.")
+            else:
+                print(f"Вакансия '{title}' не была удалена.")
 
 
-def user_interface():
-    """Интерфейс взаимодействия с пользователем"""
-    filename = "data.json"
+def user_interaction():
+    api = HeadHunterAPI()
+    json_handler = JSONFileHandler("vacancies.json")
+
+    search_query = input("Введите поисковый запрос для вакансий: ")
+    vacancies = api.get_vacancies(search_query)
+
+    if not vacancies:
+        print("Вакансии не найдены.")
+        return
 
     while True:
-        print("\nВыберите действие:")
-        print("1. Показать вакансии")
-        print("2. Добавить вакансию")
-        print("3. Удалить вакансию")
-        print("4. Выход")
-        choice = input("Введите номер действия: ")
-
-        if choice == '1':
-            hh_api = HeadHunterAPI()
-            vacancies = hh_api.get_vacancies("Python")
-            print("Список вакансий:")
-            for vacancy in vacancies:
-                print(f"- {vacancy}")
-
-        elif choice == '2':
-            title = input("Введите заголовок вакансии: ")
-            salary = input("Введите зарплату: ")
-            new_vacancy = Vacancy(title, salary)
-
-            existing_data = load_json_file(filename)
-            if not is_duplicate(existing_data, title):
-                existing_data.append({"title": new_vacancy.name, "salary": new_vacancy.salary})
-                save_json_file(filename, existing_data)
-                print("Вакансия добавлена.")
-            else:
-                print("Вакансия с таким заголовком уже существует")
-
-        elif choice == '3':
-            title = input("Введите заголовок вакансии для удаления: ")
-            existing_data = load_json_file(filename)
-            updated_data = [item for item in existing_data if item['title'] != title]
-            save_json_file(filename, updated_data)
-            print("Вакансия удалена, если она существовала")
-
-        elif choice == '4':
-            print("Выход...")
+        try:
+            top_n = int(input("Введите количество топ вакансий по зарплате (N): "))
+            if top_n <= 0:
+                raise ValueError("Значение должно быть положительным.")
             break
+        except ValueError as e:
+            print(f"Ошибка: {e}. Пожалуйста, введите корректное значение.")
 
-        else:
-            print("Неверный ввод, попробуйте снова.")
+    top_vacancies = sorted(vacancies, key=lambda vac: vac.salary, reverse=True)[:top_n]
+    print("\nТоп {} вакансий по зарплате:".format(top_n))
+    for vacancy in top_vacancies:
+        print(vacancy)
+
+    keyword = input("Введите ключевое слово для фильтрации по описанию: ")
+    filtered_vacancies = [vac for vac in vacancies if keyword.lower() in vac.description.lower()]
+
+    if filtered_vacancies:
+        print("\nВакансии с ключевым словом '{}':".format(keyword))
+        for vacancy in filtered_vacancies:
+            print(vacancy)
+    else:
+        print(f"\nВакансии с ключевым словом '{keyword}' не найдены.")
+
+    handle_deletion(json_handler)
 
 
 if __name__ == "__main__":
-    user_interface()
+    user_interaction()

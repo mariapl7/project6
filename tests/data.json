@@ -6,5 +6,11 @@
     {
         "title": "Новый разработчик",
         "salary": "70000"
+    },
+    {
+        "title": "Дизайнер",
+        "salary": 50000,
+        "url": "http://example.com",
+        "description": "Описание вакансии"
     }
 ]

@@ -1,5 +1,5 @@
 class Vacancy:
-    """Класс, представляющий вакансию."""
+    """Класс для представления вакансии."""
     __slots__ = [
         "_title",
         "_url",
@@ -17,45 +17,15 @@ class Vacancy:
     @staticmethod
     def _validate_salary(salary):
         """Проверяет корректность значения зарплаты."""
-        if salary is None or salary == "Зарплата не указана":
+        if salary is None or salary.strip() == "Зарплата не указана":
             return "Зарплата не указана"
         try:
-            return float(salary)
+            # Удаляем все символы, кроме цифр и точки
+            cleaned_salary = ''.join(filter(lambda x: x.isdigit() or x in '.-', str(salary)))
+            return float(cleaned_salary) if cleaned_salary else "Зарплата не указана"
         except ValueError:
             raise ValueError("Некорректное значение зарплаты")
 
-    @property
-    def title(self):
-        """Возвращает заголовок вакансии."""
-        return self._title
-
-    @property
-    def url(self):
-        """Возвращает ссылку на вакансию."""
-        return self._url
-
-    @property
-    def salary(self):
-        """Возвращает уровень зарплаты."""
-        return self._salary
-
-    @property
-    def description(self):
-        """Возвращает описание вакансии."""
-        return self._description
-
-    def __lt__(self, other):
-        """Сравнивает зарплату с другой вакансией для определения меньшего."""
-        return self._salary < other._salary
-
-    def __gt__(self, other):
-        """Сравнивает зарплату с другой вакансией для определения большего."""
-        return self._salary > other._salary
-
-    def __eq__(self, other):
-        """Сравнивает зарплату с другой вакансией на равенство."""
-        return self._salary == other._salary
-
     def __str__(self):
         """Возвращает строковое представление вакансии."""
-        return f"{self._title}: {self.salary}, {self._url}"
+        return f"{self._title}: {self._salary}, {self._url}"
