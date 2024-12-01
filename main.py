@@ -1,6 +1,11 @@
 from src.api import HeadHunterAPI
 from src.models import Vacancy
 from src.file_saver import JSONFileHandler
+import sys
+import os
+
+# Добавление папки src в PYTHONPATH
+sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
 
 
 def get_salary_input() -> int:
