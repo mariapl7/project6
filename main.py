@@ -1,8 +1,8 @@
 from src.api import HeadHunterAPI
 from src.models import Vacancy
 from src.file_saver import JSONFileHandler
-import sys
 import os
+import sys
 
 # Добавление папки src в PYTHONPATH
 sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
@@ -19,7 +19,7 @@ def get_salary_input() -> int:
 
 def handle_deletion(json_handler: JSONFileHandler) -> None:
     """Обработать потенциальное удаление вакансий."""
-    del_vacancy = input("Требуется что-нибудь удалить из файла? 'Да,Нет': ").strip().lower()
+    del_vacancy = input("Требуется что-нибудь удалить из файла? 'Да, Нет': ").strip().lower()
     if del_vacancy == 'да':
         titles_to_delete = input('Введите заголовки для удаления, разделенные запятыми: ')
         titles_list = [title.strip() for title in titles_to_delete.split(',')]
@@ -37,7 +37,8 @@ def user_interaction():
     json_handler = JSONFileHandler("vacancies.json")
 
     search_query = input("Введите поисковый запрос для вакансий: ")
-    vacancies = api.get_vacancies(search_query)
+    vacancies_info = api.get_vacancies(search_query)
+    vacancies = Vacancy.create_objects_from_dicts(vacancies_info)  # Создание объектов
 
     if not vacancies:
         print("Вакансии не найдены.")
@@ -55,7 +56,7 @@ def user_interaction():
     top_vacancies = sorted(vacancies, key=lambda vac: vac.salary, reverse=True)[:top_n]
     print("\nТоп {} вакансий по зарплате:".format(top_n))
     for vacancy in top_vacancies:
-        print(vacancy)
+        print(vacancy)  # Используем __str__ для отображения информации о вакансии
 
     keyword = input("Введите ключевое слово для фильтрации по описанию: ")
     filtered_vacancies = [vac for vac in vacancies if keyword.lower() in vac.description.lower()]
@@ -67,7 +68,7 @@ def user_interaction():
     else:
         print(f"\nВакансии с ключевым словом '{keyword}' не найдены.")
 
-    handle_deletion(json_handler)
+    handle_deletion(json_handler)  # Запрашиваем удаление после обработки вакансий
 
 
 if __name__ == "__main__":
