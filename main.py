@@ -32,13 +32,15 @@ def handle_deletion(json_handler: JSONFileHandler) -> None:
                 print(f"Вакансия '{title}' не была удалена.")
 
 
-def user_interaction():
+def user_interaction() -> None:
+    """Главная функция для взаимодействия с пользователем."""
     api = HeadHunterAPI()
     json_handler = JSONFileHandler("vacancies.json")
 
     search_query = input("Введите поисковый запрос для вакансий: ")
     vacancies_info = api.get_vacancies(search_query)
     vacancies = Vacancy.create_objects_from_dicts(vacancies_info)  # Создание объектов
+    json_handler.save_data(vacancies)  # Сохранение объектов вакансий в файл
 
     if not vacancies:
         print("Вакансии не найдены.")

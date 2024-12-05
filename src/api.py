@@ -3,6 +3,8 @@ from abc import ABC, abstractmethod
 
 
 class AbstractHeadHunterAPI(ABC):
+    """Абстрактный класс для работы с API HeadHunter."""
+
     @abstractmethod
     def get_vacancies(self, keyword):
         """Получение вакансий по ключевому слову."""
@@ -10,6 +12,8 @@ class AbstractHeadHunterAPI(ABC):
 
 
 class HeadHunterAPI(AbstractHeadHunterAPI):
+    """Класс для взаимодействия с API HeadHunter."""
+
     BASE_URL = "https://api.hh.ru/vacancies"
 
     def __init__(self):
